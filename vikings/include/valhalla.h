@@ -30,6 +30,9 @@
         /* TODO: Adicione aqui os atributos que achar necessários para implementar o
         comportamento de valhalla. Esses atributos deverão ser usados pelas funções
         de valhalla. */
+
+        pthread_mutex_t mutex;  /* Mutex para proteger o acesso ao array prayers */
+
     } valhalla_t;
 
     /*============================================================================*

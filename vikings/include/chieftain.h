@@ -1,6 +1,7 @@
 #ifndef __CHIEFTAIN_H__
 #define __CHIEFTAIN_H__
 
+    #include <pthread.h>
     #include "config.h"
     #include "valhalla.h"
 
@@ -20,6 +21,22 @@
         /* TODO: Adicione aqui os atributos que achar necessários para implementar o
         comportamento do chieftain. Esses atributos deverão ser usados pelas funções
         do chieftain. */
+
+        /*Atributos para serem usados na parte do BANQUETE e MESA*/
+        int *seats;             /* Array de cadeiras. vazia = -1, normal =0 e berserker = 1 */
+        int *plates;            /* Array de pratos. livre =0 e ocupado =1 */
+        /* uma boa prática não seria tornar o *plates em um array de semaforos? */
+
+        pthread_mutex_t table_mutex;  /* Mutex para proteger o estado da mesa*/
+        pthread_cond_t table_cond;   /* Condição para esperar cadeiras/pratos ficarem livres */
+
+        /* Atributos para criar BARREIRA na mesa entre normais e berserkers */
+        unsigned int banquet_counter;;  /* Contador de quantos vikings normais já terminaram de comer */
+        pthread_mutex_t barrier_mutex; /* Mutex exclusivo para proteger a barreira */
+        pthread_cond_t barrier_cond;   /* Condição para parar os vikings até todos comerem */
+
+        /*verificar os vizinhos na mesa: (i - 1 + table_size) % table_size e (i + 1) % table_size */
+
     } chieftain_t;
 
     /*============================================================================*
