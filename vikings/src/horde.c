@@ -52,7 +52,14 @@ void horde_join(horde_t *self)
 void horde_finalize(horde_t *self)
 {   
     /* TODO: Adicionar código aqui se necessário! */
+    
+    /* Finaliza individualmente cada viking que foi criado */
+    int total_vikings = self->normal_vikings + self->late_vikings; /* total = normal + atrasados*/
+    for (int i = 0; i < total_vikings; i++) {
+        viking_finalize(&self->vikings[i]);
+    }
 
+    /* Libera o bloco de memória principal da horda */
     free(self->vikings);
     plog("[horde] Finalized\n");
 }

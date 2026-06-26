@@ -14,7 +14,9 @@ void valhalla_init(valhalla_t *self)
         self->prayers[i] = 0;
 
     /* TODO: Adicionar código aqui se necessário! */
-
+    
+    /* Inicializa o mutex de proteção das preces */
+    pthread_mutex_init(&self->mutex, NULL);
     plog("[valhalla] Initialized\n");
 }
 
@@ -22,6 +24,8 @@ void valhalla_finalize(valhalla_t *self)
 {
     /* TODO: Adicionar código aqui se necessário! */
     
+    /*destroi o mutex das preces ao encerrar*/
+    pthread_mutex_destroy(&self->mutex);
     plog("[valhalla] Finalized\n");
 }
 
