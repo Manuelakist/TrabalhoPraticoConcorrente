@@ -16,7 +16,7 @@
     typedef struct chieftain
     {
         valhalla_t *valhalla;   /* Referência para valhalla.  */
-        
+        pthread_mutex_t mutex_deus;
         /* TODO: Adicione aqui os atributos que achar necessários para implementar o
         comportamento do chieftain. Esses atributos deverão ser usados pelas funções
         do chieftain. */
