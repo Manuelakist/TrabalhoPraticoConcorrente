@@ -25,7 +25,12 @@
         /*Atributos para serem usados na parte do BANQUETE e MESA*/
         int *seats;             /* Array de cadeiras. vazia = -1, normal =0 e berserker = 1 */
         int *plates;            /* Array de pratos. livre =0 e ocupado =1 */
+        int scheduled_prayers[NUMBER_OF_GODS];
         /* uma boa prática não seria tornar o *plates em um array de semaforos? */
+
+        int *prato1_usado;
+        int *prato2_usado;
+        
 
         pthread_mutex_t table_mutex;  /* Mutex para proteger o estado da mesa*/
         pthread_cond_t table_cond;   /* Condição para esperar cadeiras/pratos ficarem livres */
