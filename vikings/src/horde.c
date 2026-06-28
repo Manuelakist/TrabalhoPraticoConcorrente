@@ -18,8 +18,6 @@ void horde_init(horde_t *self, chieftain_t *chieftain, valhalla_t *valhalla)
     self->valhalla = valhalla;
 
     plog("[horde] Initialized\n");
-    
-    /* TODO: Adicionar código aqui se necessário! */
 }
 
 void horde_spawn_viking(horde_t *self, int berserker, int type)
@@ -42,17 +40,14 @@ void horde_spawn_viking(horde_t *self, int berserker, int type)
 }
 
 void horde_join(horde_t *self)
-{
-    /* TODO: Adicionar código aqui se necessário! */
-
+{   
+    /* Aguarda o término de todas as threads criadas (normais e atrasados) */
     for (int i = 0; i < self->normal_vikings + self->late_vikings; i++)
         pthread_join(self->vikings[i].thread, NULL);
 }
 
 void horde_finalize(horde_t *self)
-{   
-    /* TODO: Adicionar código aqui se necessário! */
-    
+{       
     /* Finaliza individualmente cada viking que foi criado */
     int total_vikings = self->normal_vikings + self->late_vikings; /* total = normal + atrasados*/
     for (int i = 0; i < total_vikings; i++) {

@@ -5,10 +5,11 @@
 #include <math.h>
 
 void chieftain_init(chieftain_t *self, valhalla_t *valhalla)
-{
-    /* TODO: Adicionar código aqui se necessário! */
+{   
+    /* Inicializa mutex para a escolha dos deuses */
     pthread_mutex_init(&(self->mutex_deus), NULL);
     self->valhalla = valhalla;
+
     /* Aloca e incializa as cadeiras da mesa circular*/
     /* tabelinha: VAZIO = -1, VIKING_NORMAL =0, BERSERKER = 1 */
     self->seats = (int *) malloc(sizeof(int) * config.table_size);
@@ -30,10 +31,10 @@ void chieftain_init(chieftain_t *self, valhalla_t *valhalla)
         self->prato2_usado[i] = -1;
     }
 
-    /*incializa o contador da berreira do banquete*/
+    /* Incializa o contador da barreira do banquete*/
     self->banquet_counter = 0;
 
-    /*incializa os mutexes e condicoes da mesa e da berreira do banquete */
+    /* Incializa os mutexes e condicoes da mesa e da barreira do banquete */
     pthread_mutex_init(&self->table_mutex, NULL);
     pthread_cond_init(&self->table_cond, NULL);
 
@@ -56,22 +57,24 @@ int chieftain_acquire_seat_plates(chieftain_t *self, int berserker)
     while (chair == -1) {
         for (int i = 0; i < config.table_size; i++) {
             
-            if (self->seats[i] != -1) continue;
+            if (self->seats[i] != -1) continue; /* Pula se a cadeira já estiver ocupada */
 
+            /* Verifica os vizinhos considerando o vão da mesa*/
             int esq_ok = 1;
             int dir_ok = 1;
 
-            /* Mesa é circular: usar módulo para verificar os vizinhos nas extremidades */
-            int left  = (i - 1 + config.table_size) % config.table_size;
-            int right = (i + 1) % config.table_size;
-
-            if (self->seats[left]  != -1 && self->seats[left]  != berserker)
-                esq_ok = 0;
-            if (self->seats[right] != -1 && self->seats[right] != berserker)
-                dir_ok = 0;
+            if (i > 0) { 
+                if (self->seats[i - 1] != -1 && self->seats[i - 1] != berserker)
+                    esq_ok = 0;
+            }
+            if (i < config.table_size - 1) { 
+                if (self->seats[i + 1] != -1 && self->seats[i + 1] != berserker)
+                    dir_ok = 0;
+            }
             
             if (!esq_ok || !dir_ok) continue;
 
+            /* Verifica pratos disponíveis usando módulo (mesa circular) */
             int p_esq = (i - 1 + config.table_size) % config.table_size;
             int p_meio = i;
             int p_dir = (i + 1) % config.table_size;
@@ -90,7 +93,8 @@ int chieftain_acquire_seat_plates(chieftain_t *self, int berserker)
             }
 
             if (pratos_livres >= 2) {
-                chair = i;
+                /* Ocupa a cadeira e os pratos, salvando o estado */
+                chair = i; 
                 
                 self->seats[i] = berserker;
                 self->plates[p1] = 1;
@@ -104,6 +108,7 @@ int chieftain_acquire_seat_plates(chieftain_t *self, int berserker)
         }
 
         if (chair == -1) {
+            /* Aguarda liberação de assentos ou pratos para tentar novamente */
             pthread_cond_wait(&self->table_cond, &self->table_mutex);
         }
     }
@@ -113,7 +118,8 @@ int chieftain_acquire_seat_plates(chieftain_t *self, int berserker)
 }
 
 void chieftain_release_seat_plates(chieftain_t *self, int pos)
-{
+{   
+    /* Libera a cadeira e os pratos, acordando vikings em espera */
     pthread_mutex_lock(&self->table_mutex);
     self->seats[pos] = -1;
     self->plates[self->prato1_usado[pos]] = 0;
@@ -130,22 +136,43 @@ void chieftain_release_seat_plates(chieftain_t *self, int pos)
 }
 
 int is_valid_god(chieftain_t *self, god_t god) {
+    /* Simula a adição da prece temporariamente */
     self->scheduled_prayers[god]++;
-    int is_valid = 1;
-    if (god < 6) {
-        int partner = (god % 2 == 0) ? god + 1 : god - 1;
-        int diff = abs(self->scheduled_prayers[god] - self->scheduled_prayers[partner]);
-        int max = (self->scheduled_prayers[god] > self->scheduled_prayers[partner]) ? self->scheduled_prayers[god] : self->scheduled_prayers[partner];
-        is_valid = (diff <= ceil(0.05 * max));
-    } else {
-        int sum = 0;
-        for (int i = 0; i < 6; i++) {
-            sum += self->scheduled_prayers[i];
-        }
-        is_valid = ((self->scheduled_prayers[god] - sum) <= (int)ceil(sum * 0.1));
+    
+    int valid = 1;
+    int total_normal = 0;
+    
+    for (int i = 0; i < 6; i++) {
+        total_normal += self->scheduled_prayers[i];
     }
+    
+    for (int i = 0; i < NUMBER_OF_GODS; i++) {
+        int count = self->scheduled_prayers[i];
+        if (i < 6) {
+            /* Valida limites do deus rival */ 
+            int rival = (i % 2 == 0) ? i + 1 : i - 1;
+            int rival_count = self->scheduled_prayers[rival];
+
+            int tolerance = (int)ceil(rival_count * (1.0 + RIVAL_TOLERANCE_RATE));
+            
+            int max_allowed = (1 > tolerance) ? 1 : tolerance;
+            int min_allowed = (int)floor(rival_count * (1.0 - RIVAL_TOLERANCE_RATE));
+            
+            if (count < min_allowed || count > max_allowed) {
+                valid = 0;
+                break;
+            }
+        } else { 
+            /* Valida limites dos super deuses */
+            if (count > ceil(total_normal * (1.0 + SUPER_GOD_TOLERANCE_RATE))) {
+                valid = 0;
+                break;
+            }
+        }
+    }
+    /* Desfaz a simulação */
     self->scheduled_prayers[god]--;
-    return is_valid;
+    return valid;
 }
 
 god_t chieftain_get_god(chieftain_t *self)
@@ -157,13 +184,19 @@ god_t chieftain_get_god(chieftain_t *self)
         pthread_cond_wait(&self->barrier_cond, &self->barrier_mutex);
     pthread_mutex_unlock(&self->barrier_mutex);
 
+    /* Região crítica para escolha aleatória de um deus válido */
     pthread_mutex_lock(&(self->mutex_deus));
     god_t deuses[NUMBER_OF_GODS];
     int count = 0;
     for (int i = 0; i < NUMBER_OF_GODS; i++) {
         if (is_valid_god(self, i)) deuses[count++] = i;
     }
-    god_t god = deuses[rand() % count];
+    god_t god;
+    if (count > 0) {
+        god = deuses[rand() % count];
+    } else {
+        god = ODIN;
+    }
     self->scheduled_prayers[god]++;
     pthread_mutex_unlock(&(self->mutex_deus));
     return god;
@@ -171,7 +204,6 @@ god_t chieftain_get_god(chieftain_t *self)
 
 void chieftain_finalize(chieftain_t *self)
 {
-    /* TODO: Adicionar código aqui se necessário! */
     /*destroi os mutexes e condições */
     pthread_mutex_destroy(&self->table_mutex);
     pthread_cond_destroy(&self->table_cond);
