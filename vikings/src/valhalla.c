@@ -13,7 +13,6 @@ void valhalla_init(valhalla_t *self)
     for (int i = 0; i < NUMBER_OF_GODS; i++)
         self->prayers[i] = 0;
 
-    /* TODO: Adicionar código aqui se necessário! */
     
     /* Inicializa o mutex de proteção das preces */
     pthread_mutex_init(&self->mutex, NULL);
@@ -21,9 +20,7 @@ void valhalla_init(valhalla_t *self)
 }
 
 void valhalla_finalize(valhalla_t *self)
-{
-    /* TODO: Adicionar código aqui se necessário! */
-    
+{   
     /*destroi o mutex das preces ao encerrar*/
     pthread_mutex_destroy(&self->mutex);
     plog("[valhalla] Finalized\n");
@@ -31,10 +28,11 @@ void valhalla_finalize(valhalla_t *self)
 
 void valhalla_pray(valhalla_t *self, god_t god)
 {
-    /* TODO: Adicionar código se necessário! */
-
     /* Atualiza o número de preces do deus god. */
+    /* Protege o incremento com mutex para evitar condição de corrida */
+    pthread_mutex_lock(&self->mutex);
     self->prayers[god]++;
+    pthread_mutex_unlock(&self->mutex);
 
     /* Realiza a prece por um tempo determinado (NÃO ALTERE!). */
     msleep(rand() % config.max_pray_time);
