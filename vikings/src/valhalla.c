@@ -10,11 +10,13 @@
 void valhalla_init(valhalla_t *self)
 {
     /* Inicializa os contadores de preces. */
+    //todos iniciam com 0
     for (int i = 0; i < NUMBER_OF_GODS; i++)
         self->prayers[i] = 0;
 
     
     /* Inicializa o mutex de proteção das preces */
+    /* Garante thread-safety ao incrementar prayers[] */
     pthread_mutex_init(&self->mutex, NULL);
     plog("[valhalla] Initialized\n");
 }
@@ -30,6 +32,7 @@ void valhalla_pray(valhalla_t *self, god_t god)
 {
     /* Atualiza o número de preces do deus god. */
     /* Protege o incremento com mutex para evitar condição de corrida */
+    /* Múltiplas threads podem chamar valhalla_pray() simultaneamente */
     pthread_mutex_lock(&self->mutex);
     self->prayers[god]++;
     pthread_mutex_unlock(&self->mutex);

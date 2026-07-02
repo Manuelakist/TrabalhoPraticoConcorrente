@@ -18,10 +18,17 @@
         int type;       /* NORMAL_VIKING ou LATE_VIKING?           */
         int id;         /* Identificador único do viking.          */ 
 
-        chieftain_t *chieftain; /* Referência para chieftain. */
-        valhalla_t *valhalla;   /* Referência para valhalla.  */
+        chieftain_t *chieftain; /* Referência para chieftain. 
+                                Usado em chieftain_acquire_seat_plates(),
+                                chieftain_release_seat_plates(),
+                                chieftain_get_god() */
+                                
+        valhalla_t *valhalla;   /* Referência para valhalla.  
+                                Usado em valhalla_pray() para fazer preces */
 
-        pthread_t thread; /* A thread viking. */
+        pthread_t thread; /* A thread viking.
+                            Criada em horde_spawn_viking() via pthread_create().
+                            Sincronizado em horde_join() via pthread_join(). */
         
         /* TODO: Adicione aqui os atributos que achar necessários para implementar o
         comportamento do viking. Esses atributos deverão ser usados pelas funções

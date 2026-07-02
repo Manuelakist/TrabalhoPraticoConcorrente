@@ -28,17 +28,19 @@
         int scheduled_prayers[NUMBER_OF_GODS];
         /* uma boa prática não seria tornar o *plates em um array de semaforos? */
 
-        int *prato1_usado;
-        int *prato2_usado;
+        int *prato1_usado;              /* Array auxiliar: marca primeiro prato usado por cada viking.*/
+        int *prato2_usado;              /* Array auxiliar: marca segundo prato usado por cada viking.*/
+
         
 
         pthread_mutex_t table_mutex;  /* Mutex para proteger o estado da mesa*/
-        pthread_cond_t table_cond;   /* Condição para esperar cadeiras/pratos ficarem livres */
+        pthread_cond_t table_cond;   /* variável de condição para esperar cadeiras/pratos ficarem livres */
 
         /* Atributos para criar BARREIRA na mesa entre normais e berserkers */
         unsigned int banquet_counter;;  /* Contador de quantos vikings normais já terminaram de comer */
-        pthread_mutex_t barrier_mutex; /* Mutex exclusivo para proteger a barreira */
-        pthread_cond_t barrier_cond;   /* Condição para parar os vikings até todos comerem */
+        pthread_mutex_t barrier_mutex; /* Mutex exclusivo para proteger o contador da barreira */
+        pthread_cond_t barrier_cond;   /* Variável de condição: notifica vikings que podem começar preces.
+                                        Signal disparado quando banquet_counter == config.horde_size */
 
         /*verificar os vizinhos na mesa: (i - 1 + table_size) % table_size e (i + 1) % table_size */
 

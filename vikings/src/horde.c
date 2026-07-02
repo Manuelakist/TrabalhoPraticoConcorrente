@@ -10,6 +10,7 @@ void horde_init(horde_t *self, chieftain_t *chieftain, valhalla_t *valhalla)
     vikings normais + atrasados. */
     self->vikings = (viking_t *) malloc(sizeof(viking_t) * config.horde_size * 2);
 
+    // incializa contadores de vikings normais, atrasados e berserkers com 0
     self->normal_vikings = 0;
     self->late_vikings = 0;
     self->berserkers = 0;

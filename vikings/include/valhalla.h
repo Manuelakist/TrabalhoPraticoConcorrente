@@ -31,7 +31,8 @@
         comportamento de valhalla. Esses atributos deverão ser usados pelas funções
         de valhalla. */
 
-        pthread_mutex_t mutex;  /* Mutex para proteger o acesso ao array prayers */
+        pthread_mutex_t mutex;  /* Mutex para proteger o acesso ao array prayers 
+                                  Usado por valhalla_pray() e chieftain_get_god(). */
 
     } valhalla_t;
 
